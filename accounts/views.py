@@ -11,7 +11,7 @@ from accounts.serializers import RegistrationSerializer, LoginSerializer
 
 # Create your views here.
 
-class RegisterAPIView(APIView):
+class RegisterAPIView(APIView): #JWT token olish
     serializer_class = RegistrationSerializer
 
     def post(self, request):
@@ -30,7 +30,7 @@ class RegisterAPIView(APIView):
 
 
 
-class LoginAPIView(APIView):
+class LoginAPIView(APIView):#JWT login qilish
     serializer_class = LoginSerializer
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
