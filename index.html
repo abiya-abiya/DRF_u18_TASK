@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Test</title>
+</head>
+<body style="font-family: Arial; padding: 50px;">
+    <h2>Login Qilish (Frontend)</h2>
+
+    <input type="text" id="username" placeholder="Username" style="padding: 5px; margin-bottom: 10px;"><br>
+    <input type="password" id="password" placeholder="Password" style="padding: 5px; margin-bottom: 10px;"><br>
+    <button onclick="loginAPI()" style="padding: 5px 15px; cursor: pointer;">Kirish</button>
+
+    <h4 style="margin-top: 20px;">Backenddan kelgan javob:</h4>
+    <pre id="natija" style="background: #f4f4f4; padding: 15px; border-radius: 5px; color: green;"></pre>
+
+    <script>
+        function loginAPI() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+
+            // Sizning Djangodagi Login API manzilingiz
+            fetch('http://127.0.0.1:8000/api/v1/accounts/login/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Javobni ekranga chiqarish
+                document.getElementById('natija').innerText = JSON.stringify(data, null, 4);
+            })
+            .catch(error => {
+                document.getElementById('natija').innerText = "Xatolik: Django server yoniqmi yoki CORS sozlandimi?";
+            });
+        }
+    </script>
+</body>
+</html>

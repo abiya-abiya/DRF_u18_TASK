@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
 
+    'corsheaders',
+
 
     'accounts',
     'apps',
@@ -48,6 +50,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -138,3 +143,4 @@ MAILERS = {
     },
 }
 AUTH_USER_MODEL = 'accounts.CustomUser'
+CORS_ALLOW_ALL_ORIGINS = True
