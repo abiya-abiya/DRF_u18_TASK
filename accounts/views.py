@@ -1,10 +1,11 @@
+import jwt
 from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.jwt import create_access_token, create_refresh_token
+from accounts.jwt import create_access_token, create_refresh_token, decode_token
 from accounts.models import CustomUser
 from accounts.serializers import RegistrationSerializer, LoginSerializer
 
@@ -49,3 +50,19 @@ class LoginAPIView(APIView):#JWT login qilish
             }, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Login yoki parol noto'g'ri"}, status=status.HTTP_401_UNAUTHORIZED)
+
+class RefreshTokenAPIView(APIView):
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({'Error': 'Refresh token kerak'}, status=400)
+        try:
+            payload = decode_token(refresh_token)
+            if payload['type'] != 'refresh':
+                raise jwt.InvalidTokenError
+        except jwt.ExpiredSignatureError:
+            return Response({'Error': 'Refresh token eskirgan.'}, status=401)
+        except jwt.InvalidTokenError:
+            return Response({'Error': 'Token yaroqsiz.'}, status=401)
+        new_access = create_access_token(payload['user_id'])
+        return Response({'access_token': new_access}, status=200)
