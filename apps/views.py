@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from apps.models import Project
-from apps.serializers import ProjectSerializer
+from apps.models import Project, ProjectMember
+from apps.serializers import ProjectSerializer, ProjectMemberSerializer
 
 
 # Create your views here.
@@ -13,4 +13,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        project = serializer.save(owner=self.request.user)
+        ProjectMember.objects.create(
+            project = project,
+            user = self.request.user,
+            role=ProjectMember.Role.ADMIN
+        )
+
+class ProjectMemberViewSet(viewsets.ModelViewSet):
+    queryset = ProjectMember.objects.all()
+    serializer_class = ProjectMemberSerializer
+    permission_classes = [IsAuthenticated]

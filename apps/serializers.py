@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.models import Project
+from apps.models import Project, ProjectMember
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -14,3 +14,16 @@ class ProjectSerializer(serializers.ModelSerializer):
             'members',
         ]
         read_only_fields = ['owner']
+
+class ProjectMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectMember
+        fields = [
+            'id',
+            'project',
+            'user',
+            'role',
+            'join_date',
+            'left_date',
+
+        ]
