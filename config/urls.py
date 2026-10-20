@@ -23,6 +23,7 @@ urlpatterns = [
         [
             path("accounts/", include("accounts.urls")),
             path("apps/", include("apps.urls")),
+            path("task/", include("task.urls")),
         ]
     ))
 
