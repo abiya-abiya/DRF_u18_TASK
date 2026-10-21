@@ -23,7 +23,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Task.objects.filter(
-            Q(owner=user) | Q(member=user)
+            Q(project__owner=user) | Q(project__members=user)
 
         ).distinct()
 

@@ -15,7 +15,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Project.objects.filter(
-            Q(owner=user) | Q(member=user)
+            Q(owner=user) | Q(members=user)
 
         ).distinct()
 
