@@ -1,6 +1,8 @@
+from django.db import transaction
 from django.shortcuts import render
 from rest_framework import viewsets
 
+from apps.models import ProjectMember
 from apps.serializers import ProjectSerializer
 from task_manager.models import Project
 
@@ -20,7 +22,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        ...
+        with transaction.atomic():
+            project = serializer.save(owner=self.request.user)
+            ProjectMember.objects.create(
+                project=project,
+                user=self.request.user,
+                role = ProjectMember.Role.ADMIN,
+            )
 
     def perform_update(self, serializer):
         ...
