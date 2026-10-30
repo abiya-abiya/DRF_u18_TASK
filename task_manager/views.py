@@ -2,12 +2,14 @@ from django.db import transaction
 from django.shortcuts import render
 from drf_yasg.openapi import Response
 from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.reverse import reverse
 
 from apps.models import ProjectMember
 from apps.serializers import ProjectSerializer
 from task.models import Task
 from task_manager.models import Project
+from task_manager.permissions import IsProjectAdmin, IsProjectOwner
 
 
 # Create your views here.
@@ -45,3 +47,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
         self.login(self.owner)
         self.client.delete(reverse('project-detail', args = [self.private.pk]))
         self.assertFalse(Task.objects.filter(project_id = self.private.pk).exists())
+
+    permission_by_action = {
+        'partial_update': [IsAuthenticated, IsProjectAdmin],
+        'destroy': [IsAuthenticated, IsProjectOwner],
+        'add_member': [IsAuthenticated, IsProjectAdmin],
+        'remove_member': [IsAuthenticated, IsProjectAdmin],
+    }
+    def get_permissions(self):
+        classes = self.permission_by_action.get(self.action, [IsAuthenticated])
+        return [permission() for permission in classes]
+
+
