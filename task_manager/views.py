@@ -1,9 +1,12 @@
 from django.db import transaction
 from django.shortcuts import render
-from rest_framework import viewsets
+from drf_yasg.openapi import Response
+from rest_framework import viewsets, status
+from rest_framework.reverse import reverse
 
 from apps.models import ProjectMember
 from apps.serializers import ProjectSerializer
+from task.models import Task
 from task_manager.models import Project
 
 
@@ -32,3 +35,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         ...
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def test_delete_project_removes_tasks(self):
+        self.login(self.owner)
+        self.client.delete(reverse('project-detail', args = [self.private.pk]))
+        self.assertFalse(Task.objects.filter(project_id = self.private.pk).exists())
