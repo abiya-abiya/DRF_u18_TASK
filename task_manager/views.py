@@ -2,6 +2,7 @@ from django.db import transaction
 from django.shortcuts import render
 from drf_yasg.openapi import Response
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.reverse import reverse
 
@@ -58,4 +59,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         classes = self.permission_by_action.get(self.action, [IsAuthenticated])
         return [permission() for permission in classes]
 
-
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        project = self.get_object()
+        qs = project.project_members.select_related('user').order_by('created_at')
+        return Response(MemberSerializer)
