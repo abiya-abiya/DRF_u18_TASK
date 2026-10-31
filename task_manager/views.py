@@ -1,16 +1,14 @@
 from django.db import transaction
 
-from drf_yasg.openapi import Response
+from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 
-
-from apps.models import ProjectMember
 from apps.serializers import ProjectSerializer
 
-from task_manager.models import Project
+from apps.models import Project, ProjectMember
 
 from task_manager.serializers import MemberSerializer, MemberCreateSerializer
 
@@ -25,7 +23,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return (
             Project.objects
-            .visibile_to(self.request.user)
+            .visible_to(self.request.user)
             .select_related('owner')
         )
 
