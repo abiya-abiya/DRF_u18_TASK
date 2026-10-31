@@ -3,6 +3,8 @@ from django.shortcuts import render
 from drf_yasg.openapi import Response
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.reverse import reverse
 
@@ -76,3 +78,31 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         member = serializer.save()
         return Response(MemberSerializer(member).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['delete'],
+            url_path=r'members/(?P<user_id>\d+)', url_name='member-detail')
+    def remove_member(self, request, pk=None, user_id=None):
+        project = self.get_object()  # IsProjectAdmin
+
+        membership = get_object_or_404(ProjectMember, project=project, user_id=user_id)
+        if membership.user_id == project.owner_id:
+            raise ValidationError({'detail': 'Cannot modify project owner'})
+        if membership.user_id == request.user.id:
+            raise ValidationError({'detail': 'Use leave to exit the project'})
+        with transaction.atomic():
+            project.tasks.filter(assigned_to_id=user_id).update(assigned_to=None)
+            membership.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'])  # projects/{pk}/leave/
+    def leave(self, request, pk=None):
+        project = self.get_object()  # faqat IsAuthenticated
+
+        if project.owner_id == request.user.id:
+            raise ValidationError({'detail': 'Owner cannot leave the project'})
+        membership = get_object_or_404(ProjectMember, project=project, user=request.user)
+        with transaction.atomic():
+            project.tasks.filter(assigned_to=request.user).update(assigned_to=None)
+            membership.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
