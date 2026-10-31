@@ -36,6 +36,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     filterset_fields = ['visibility']
     search_fields = ['name']
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Project.objects.none()
         return (
             Project.objects.
             visible_to(self.request.user)

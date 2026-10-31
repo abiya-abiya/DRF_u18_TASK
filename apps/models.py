@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 from accounts.models import CustomUser
 from common.models import TimeStampedModel
@@ -69,3 +70,11 @@ class ProjectMember(TimeStampedModel):
     def __str__(self):
         return f'{self.user} - {self.project}'
 
+class ProjectQuerySet(models.QuerySet):
+    def visible_to(self, user):
+        if user.is_anonymous:
+            return self.none()
+
+        return self.filter(
+            Q(owner=user) | Q(members=user)
+        ).distinct()
