@@ -5,6 +5,16 @@ from accounts.models import CustomUser
 from common.models import TimeStampedModel
 
 
+class ProjectQuerySet(models.QuerySet):
+    def visible_to(self, user):
+        if user.is_anonymous:
+            return self.none()
+
+        return self.filter(
+            Q(owner=user) | Q(members=user)
+        ).distinct()
+
+
 class Project(TimeStampedModel):
     class Visibility(models.TextChoices):
         PRIVATE = 'private', 'Private'
@@ -26,8 +36,11 @@ class Project(TimeStampedModel):
         CustomUser,
         through='ProjectMember',
         related_name='projects',
-        blank=True,                      # null=True olib tashlandi (W340)
+        blank=True,
     )
+
+    # Manager'ni ulash
+    objects = ProjectQuerySet.as_manager()
 
     class Meta:
         ordering = ['-created_at']
@@ -51,13 +64,13 @@ class ProjectMember(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name='project_memberships',
     )
-    role = models.CharField(             # yangi: Role bor edi, maydon yo'q edi
+    role = models.CharField(
         max_length=6,
         choices=Role.choices,
         default=Role.MEMBER,
     )
     join_date = models.DateField(blank=True, null=True)
-    left_date = models.DateField(blank=True, null=True)   # hard delete'da ishlatilmaydi
+    left_date = models.DateField(blank=True, null=True)
 
     class Meta:
         constraints = [
@@ -69,12 +82,3 @@ class ProjectMember(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user} - {self.project}'
-
-class ProjectQuerySet(models.QuerySet):
-    def visible_to(self, user):
-        if user.is_anonymous:
-            return self.none()
-
-        return self.filter(
-            Q(owner=user) | Q(members=user)
-        ).distinct()

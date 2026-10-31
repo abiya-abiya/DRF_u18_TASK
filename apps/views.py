@@ -3,8 +3,12 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from rest_framework.reverse import reverse
+
 from apps.models import Project, ProjectMember
 from apps.serializers import ProjectSerializer
+from task.models import Task
+from task_manager.permissions import IsProjectAdmin, IsProjectOwner
 
 
 # Create your views here.
@@ -54,9 +58,21 @@ class ProjectViewSet(viewsets.ModelViewSet):
             )
         # owner birinchi admin
 
+    def test_delete_project_removes_tasks(self):
+        self.login(self.owner)
+        self.client.delete(reverse('project-detail', args=[self.private.pk]))
+        self.assertFalse(Task.objects.filter(project_id=self.private.pk).exists())
+
+    permission_by_action = {
+        'partial_update': [IsAuthenticated, IsProjectAdmin],
+        'destroy': [IsAuthenticated, IsProjectOwner],
+        'add_member': [IsAuthenticated, IsProjectAdmin],
+        'remove_member': [IsAuthenticated, IsProjectAdmin],
+    }
 
     def get_permissions(self):
-        ...
+        classes = self.permission_by_action.get(self.action, [IsAuthenticated])
+        return [permission() for permission in classes]
 
 
 
