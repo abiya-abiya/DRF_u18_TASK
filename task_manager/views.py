@@ -11,6 +11,7 @@ from apps.serializers import ProjectSerializer
 from task.models import Task
 from task_manager.models import Project
 from task_manager.permissions import IsProjectAdmin, IsProjectOwner
+from task_manager.serializers import MemberSerializer, MemberCreateSerializer
 
 
 # Create your views here.
@@ -63,4 +64,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def members(self, request, pk=None):
         project = self.get_object()
         qs = project.project_members.select_related('user').order_by('created_at')
-        return Response(MemberSerializer)
+        return Response(MemberSerializer(qs, many=True).data)
+
+    @members.mapping.post
+    def add_member(self, request, pk=None):
+        project = self.get_object()
+        serializer = MemberCreateSerializer(
+            data=request.data,
+            context={'request': request, 'project': project},
+        )
+        serializer.is_valid(raise_exception=True)
+        member = serializer.save()
+        return Response(MemberSerializer(member).data, status=status.HTTP_201_CREATED)
