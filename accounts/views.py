@@ -1,4 +1,7 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, JSONParser, FormParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,11 +9,22 @@ from accounts.serializers import RegisterSerializer
 
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
-# hali tokeni yo'q odam uchun
+    parser_classes = [MultiPartParser, FormParser]
+    # hali tokeni yo'q odam uchun
+    @swagger_auto_schema(operation_description="Ro'yxatdan o'tish va rasm yuklash",
+        manual_parameters=[
+            openapi.Parameter('username', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('email', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('phone', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter('password', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('avatar', openapi.IN_FORM, type=openapi.TYPE_FILE, required=False), # Rasm uchun
+        ],
+        responses={201: RegisterSerializer}
+)
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-# xato bo'lsa shu yerda 400
+        # xato bo'lsa shu yerda 400
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
