@@ -2,6 +2,8 @@ from django.db import models
 from accounts.models import  CustomUser
 from apps.models import Project
 from common.models import TimeStampedModel
+from config import settings
+
 
 # Create your models here.
 class Task(TimeStampedModel):
@@ -38,10 +40,11 @@ class Task(TimeStampedModel):
         related_name='created_tasks'
     )
     assigned_to = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='assigned_tasks',
-        blank=True, null=True
+        settings.AUTH_USER_MODEL,  # yoki CustomUser
+        on_delete=models.SET_NULL,  # <--- CASCADE o'rniga SET_NULL bo'lishi kerak
+        null=True,  # <--- SET_NULL ishlashi uchun null=True majburiy
+        blank=True,
+        related_name='tasks_assigned'
     )
     due_date = models.DateField(blank=True, null=True)
 
