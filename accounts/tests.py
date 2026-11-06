@@ -57,3 +57,18 @@ class AvatarUploadTests(APITestCase):
         self.assertEqual(response.status_code, 201, response.data)
         user = CustomUser.objects.get(username='ali')
         self.assertTrue(user.avatar.name.startswith('avatars/'))
+    def test_register_with_text_file_as_avatar_returns_400(self):
+        fake = SimpleUploadedFile('me.png', b'not an image', content_type='image/png')
+
+        # ... o'rniga ro'yxatdan o'tish uchun kerakli barcha ma'lumotlarni yozamiz
+        payload = {
+            'username': 'vali',
+            'email': 'vali@example.com',
+            'password': 'Str0ng-pass-2026',
+            'avatar': fake
+        }
+
+        response = self.client.post('/api/v1/auth/register/', payload, format='multipart')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('avatar', response.data)
